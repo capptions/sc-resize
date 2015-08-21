@@ -97,7 +97,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           }
 
           canvas.toBlob(function (blob) {
-            blob.name = file.name;
+            blob.name = file.name.replace(/\.[^\.]+$/, '.jpg');
             this.set('resized', blob);
             this.fire('resize', blob);
             fn(blob);
