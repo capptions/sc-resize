@@ -88,7 +88,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       window.loadImage.parseMetaData(file, function (data) {
 
-        var orientation = data.exif.get('Orientation');
+        var orientation = data && data.exif && data.exif.get('Orientation');
 
         window.loadImage(file, function (canvas) {
 
@@ -103,9 +103,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             fn(blob);
           }.bind(this), 'image/jpeg');
 
-        }.bind(this), this.options({
-          orientation: orientation
-        }));
+        }.bind(this), this.options(orientation));
 
       }.bind(this));
     }
