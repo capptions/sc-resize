@@ -93,13 +93,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         window.loadImage(file, function (canvas) {
 
           if (canvas.type === 'error') {
-            return this.fire('error');
+            return this.fire('error', {}, { bubbles: false });
           }
 
           canvas.toBlob(function (blob) {
             blob.name = file.name.replace(/\.[^\.]+$/, '.jpg');
             this.set('resized', blob);
-            this.fire('resize', blob);
+            this.fire('resize', blob, { bubbles: false });
             fn(blob);
           }.bind(this), 'image/jpeg');
 
