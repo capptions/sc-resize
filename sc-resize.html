@@ -43,6 +43,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         value: 80
       },
 
+      background: {
+        type: Boolean,
+        value: true
+      },
+
       file: {
         type: Object
       },
@@ -94,6 +99,19 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
           if (canvas.type === 'error') {
             return this.fire('error', {}, { bubbles: false });
+          }
+
+          if (this.background) {
+            var output = document.createElement('canvas');
+            output.width = canvas.width;
+            output.height = canvas.height;
+
+            var context = output.getContext('2d');
+
+            context.fillStyle = '#ffffff';
+            context.fillRect(0, 0, output.width, output.height);
+            context.drawImage(canvas, 0, 0);
+            canvas = output;
           }
 
           canvas.toBlob(function (blob) {
