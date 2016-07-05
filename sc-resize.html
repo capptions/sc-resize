@@ -98,6 +98,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         window.loadImage(file, function (canvas) {
 
           if (canvas.type === 'error') {
+            fn(file);
             return this.fire('error', {}, { bubbles: false });
           }
 
