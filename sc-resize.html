@@ -119,7 +119,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             blob.name = file.name.replace(/\.[^\.]+$/, '.jpg');
             this.set('resized', blob);
             this.fire('resize', blob, { bubbles: false });
-            fn(blob);
+            fn(blob, canvas);
           }.bind(this), 'image/jpeg');
 
         }.bind(this), this.options(orientation));
