@@ -108,6 +108,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       if (/image\/hei[cf]/i.test(file.type) && !file._heic_processed) {
         var retry = function (processedFile) {
+          retry = function () {};
           if (processedFile) {
             processedFile.name = file.name.replace(/\.hei[cf]/ig, '.jpg');
             processedFile._heic_processed = true;
@@ -123,6 +124,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             return retry();
           }
 
+          // We may run into a CSP error here
+          setTimeout(retry, 5000);
           return window.heic2any({ blob: file, toType: 'image/jpeg' }).then(retry).catch(retry);
         });
       }
