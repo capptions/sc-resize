@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Polymer 1.0 element for resizing images",
   "authors": [
-    "Safety Changer"
+    "Capptions"
   ],
   "keywords": [
     "web-components",
@@ -20,10 +20,10 @@
   "private": false,
   "repository": {
     "type": "git",
-    "url": "git://github.com/safetychanger/sc-resize"
+    "url": "git://github.com/capptions/sc-resize"
   },
   "license": "http://polymer.github.io/LICENSE.txt",
-  "homepage": "https://github.com/safetychanger/sc-resize",
+  "homepage": "https://github.com/capptions/sc-resize",
   "dependencies": {
     "polymer": "latest",
     "blueimp-load-image": "latest",
