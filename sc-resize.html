@@ -22,24 +22,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     is: 'sc-resize',
 
     properties: {
-      maxWidth: {
+      max: {
         type: Number,
-        value: 1050
+        value: 1280
       },
 
-      maxHeight: {
-        type: Number,
-        value: 874
-      },
-
-      minWidth: {
+      min: {
         type: Number,
         value: 140
-      },
-
-      minHeight: {
-        type: Number,
-        value: 80
       },
 
       background: {
@@ -63,23 +53,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     fileChanged: function () {
       this.resize(this.file);
-    },
-
-    options: function (orientation) {
-      var options = {
-        maxWidth: this.maxWidth,
-        maxHeight: this.maxHeight,
-        minWidth: this.minWidth,
-        minHeight: this.minHeight,
-        crossOrigin: true,
-        canvas: true
-      };
-
-      if (typeof orientation !== 'undefined') {
-        options.orientation = orientation;
-      }
-
-      return options;
     },
 
     loadHeic2Any: function (fn) {
@@ -159,7 +132,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             fn(blob, canvas);
           }.bind(this), 'image/jpeg');
 
-        }.bind(this), this.options(orientation));
+        }.bind(this), {
+          maxWidth: this.max,
+          maxHeight: this.max,
+          minWidth: this.min,
+          minHeight: this.min,
+          crossOrigin: true,
+          canvas: true,
+          meta: true,
+          orientation: true
+        });
 
       }.bind(this));
     }
