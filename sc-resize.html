@@ -72,7 +72,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }.bind(this));
     },
 
-    resize: function (file, fn) {
+    resize: function (file, fn, options) {
       fn = fn || function () {};
 
       if (!file) {
@@ -105,6 +105,23 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       window.loadImage.parseMetaData(file, function (data) {
         var orientation = data && data.exif && data.exif.get('Orientation');
+        var opts = {
+          maxWidth: this.max,
+          maxHeight: this.max,
+          minWidth: this.min,
+          minHeight: this.min,
+          crossOrigin: true,
+          canvas: true,
+          meta: true,
+          orientation: true
+        };
+
+        if (options.maxWidth) {
+          opts.maxWidth = options.maxWidth;
+        }
+        if (options.maxHeight) {
+          opts.maxHeight = options.maxHeight;
+        }
 
         window.loadImage(file, function (canvas) {
           if (canvas.type === 'error') {
@@ -132,16 +149,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             fn(blob, canvas);
           }.bind(this), 'image/jpeg');
 
-        }.bind(this), {
-          maxWidth: this.max,
-          maxHeight: this.max,
-          minWidth: this.min,
-          minHeight: this.min,
-          crossOrigin: true,
-          canvas: true,
-          meta: true,
-          orientation: true
-        });
+        }.bind(this), opts);
 
       }.bind(this));
     }
