@@ -116,10 +116,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           orientation: true
         };
 
-        if (options.maxWidth) {
+        if (options && options.maxWidth) {
           opts.maxWidth = options.maxWidth;
         }
-        if (options.maxHeight) {
+        if (options && options.maxHeight) {
           opts.maxHeight = options.maxHeight;
         }
 
