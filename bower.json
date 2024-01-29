@@ -27,6 +27,7 @@
   "dependencies": {
     "polymer": "latest",
     "blueimp-load-image": "latest",
-    "blueimp-canvas-to-blob": "latest"
+    "blueimp-canvas-to-blob": "latest",
+    "piexifjs": "1.0.4"
   }
 }

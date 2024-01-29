@@ -7,16 +7,117 @@ The complete set of contributors may be found at http://polymer.github.io/CONTRI
 Code distributed by Google as part of the polymer project is also
 subject to an additional IP rights grant found at http://polymer.github.io/PATENTS
 -->
-<link rel="import" href="../polymer/polymer.html" />
-<script src="../blueimp-load-image/js/load-image.all.min.js"></script>
-<script src="../blueimp-canvas-to-blob/js/canvas-to-blob.min.js"></script>
+<link rel='import' href='../polymer/polymer.html' />
+<script src='../blueimp-load-image/js/load-image.all.min.js'></script>
+<script src='../blueimp-canvas-to-blob/js/canvas-to-blob.min.js'></script>
+<script src='../piexifjs/piexif.js'></script>
 
-<dom-module id="sc-resize">
+<dom-module id='sc-resize'>
   <template></template>
 </dom-module>
 
 <script>
 (function () {
+  var convertRationalNumber = function (num) {
+    return [num * 100, 100];
+  };
+
+  var convertGPSData = function (gpsDataString) {
+    var parts = gpsDataString.split(',');
+    return parts.map((part, index) => {
+      var num = parseFloat(part);
+      return index < 2 ? [num, 1] : convertRationalNumber(num);
+    });
+  };
+
+  var exifBaseFields = [
+    'Make',
+    'Model',
+    'Software',
+    'DateTime',
+    'ExposureTime',
+    'FNumber',
+    'DateTimeOriginal',
+    'DateTimeDigitized'
+  ];
+
+  var exifMappings = {
+    ExposureProgram: {
+      'Not Defined': 0,
+      'Manual': 1,
+      'Normal program': 2,
+      'Aperture priority': 3,
+      'Shutter priority': 4,
+      'Creative program': 5,
+      'Action program': 6,
+      'Portrait mode': 7,
+      'Landscape mode': 8
+    },
+    MeteringMode: {
+      'Unknown': 0,
+      'Average': 1,
+      'CenterWeightedAverage': 2,
+      'Spot': 3,
+      'MultiSpot': 4,
+      'Pattern': 5,
+      'Partial': 6,
+      'Other': 255
+    },
+    LightSource: {
+      'Unknown': 0,
+      'Daylight': 1,
+      'Fluorescent': 2,
+      'Tungsten (incandescent light)': 3,
+      'Flash': 4,
+      'Fine weather': 9,
+      'Cloudy weather': 10,
+      'Shade': 11,
+      'Daylight fluorescent (D 5700 - 7100K)': 12,
+      'Day white fluorescent (N 4600 - 5400K)': 13,
+      'Cool white fluorescent (W 3900 - 4500K)': 14,
+      'White fluorescent (WW 3200 - 3700K)': 15,
+      'Standard light A': 17,
+      'Standard light B': 18,
+      'Standard light C': 19,
+      'D55': 20,
+      'D65': 21,
+      'D75': 22,
+      'D50': 23,
+      'ISO studio tungsten': 24,
+      'Other light source': 255
+    },
+    Flash: {
+      'Flash did not fire': 0x0000,
+      'Flash fired': 0x0001,
+      'Strobe return light not detected': 0x0005,
+      'Strobe return light detected': 0x0007
+    },
+    WhiteBalance: {
+      'Auto white balance': 0,
+      'Manual white balance': 1
+    }
+  };
+
+  var mapExifStringToCode = function (field, value) {
+    return exifMappings[field] && exifMappings[field][value] !== undefined
+      ? exifMappings[field][value]
+      : exifBaseFields.indexOf(field) > -1
+        ? value
+        : undefined;
+  };
+
+  window.blobToDataURL = function (blob, fn) {
+    var reader = new FileReader();
+
+    reader.onload = function (e) {
+      return fn(null, e.target.result);
+    };
+    reader.onerror = function (e) {
+      return fn(e);
+    };
+
+    reader.readAsDataURL(blob);
+  };
 
   window.Polymer({
     is: 'sc-resize',
@@ -81,7 +182,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       if (/image\/hei[cf]/i.test(file.type) && !file._heic_processed) {
         var retry = function (processedFile) {
-          retry = function () {};
+          _retry(processedFile);
+        };
+
+        var _retry = function (processedFile) {
+          _retry = function () {};
+
           if (processedFile) {
             processedFile.name = file.name.replace(/\.hei[cf]/ig, '.jpg');
             processedFile._heic_processed = true;
@@ -104,7 +210,61 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
 
       window.loadImage.parseMetaData(file, function (data) {
-        var orientation = data && data.exif && data.exif.get('Orientation');
+        var exif = data && data.exif && data.exif;
+        var exifStr;
+
+        try {
+          if (exif) {
+            var exifData = exif.getAll();
+            var piexifData = {
+              '0th': {
+                [piexif.ImageIFD.Make]: exifData.Make,
+                [piexif.ImageIFD.Model]: exifData.Model,
+                [piexif.ImageIFD.Software]: exifData.Software
+              },
+              Exif: Object.keys(exifData.Exif).reduce(function (res, tag) {
+                var tagCode = piexif.ExifIFD[tag];
+                if (tagCode) {
+                  var value = exifData.Exif[tag];
+                  if (typeof value === 'string' && !isNaN(parseFloat(value))) {
+                    value = convertRationalNumber(value);
+                  }
+
+                  value = mapExifStringToCode(tag, value);
+
+                  if (typeof value !== 'undefined') {
+                    res[tagCode] = value;
+                  }
+                }
+
+                return res;
+              }, {}),
+              GPS: Object.keys(exifData.GPSInfo).reduce(function (res, tag) {
+                var tagCode = piexif.GPSIFD[tag];
+                if (tagCode) {
+                  var value = exifData.GPSInfo[tag];
+                  if (tag === 'GPSLatitude' || tag === 'GPSLongitude') {
+                    value = convertGPSData(value);
+                  }
+                  else if (typeof value === 'string' && !isNaN(parseFloat(value))) {
+                    value = convertRationalNumber(parseFloat(value));
+                  }
+
+                  res[tagCode] = value;
+                }
+
+                return res;
+              }, {})
+            };
+
+            exifStr = piexif.dump(piexifData);
+          }
+        }
+        catch (ex) {
+          console.error(ex);
+        }
+
+        var orientation = exif && exif.get('Orientation');
         var opts = {
           maxWidth: this.max,
           maxHeight: this.max,
@@ -143,10 +303,33 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           }
 
           canvas.toBlob(function (blob) {
-            blob.name = file.name.replace(/\.[^\.]+$/, '.jpg');
-            this.set('resized', blob);
-            this.fire('resize', blob, { bubbles: false });
-            fn(blob, canvas);
+            var done = function () {
+              blob.name = file.name.replace(/\.[^\.]+$/, '.jpg');
+              this.set('resized', blob);
+              this.fire('resize', blob, { bubbles: false });
+
+              fn(blob, canvas);
+            }.bind(this);
+
+            if (!exifStr) {
+              return done();
+            }
+
+            window.blobToDataURL(blob, function (err, dataUrl) {
+              if (!dataUrl) {
+                return done();
+              }
+
+              try {
+                dataUrl = piexif.insert(exifStr, dataUrl);
+                blob = window.dataURLtoBlob(dataUrl) || blob;
+              }
+              catch (ex) {
+                console.error(ex);
+              }
+
+              done();
+            });
           }.bind(this), 'image/jpeg');
 
         }.bind(this), opts);
