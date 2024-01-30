@@ -222,7 +222,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 [piexif.ImageIFD.Model]: exifData.Model,
                 [piexif.ImageIFD.Software]: exifData.Software
               },
-              Exif: Object.keys(exifData.Exif).reduce(function (res, tag) {
+              Exif: Object.keys(exifData.Exif || {}).reduce(function (res, tag) {
                 var tagCode = piexif.ExifIFD[tag];
                 if (tagCode) {
                   var value = exifData.Exif[tag];
@@ -239,7 +239,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
                 return res;
               }, {}),
-              GPS: Object.keys(exifData.GPSInfo).reduce(function (res, tag) {
+              GPS: Object.keys(exifData.GPSInfo || {}).reduce(function (res, tag) {
                 var tagCode = piexif.GPSIFD[tag];
                 if (tagCode) {
                   var value = exifData.GPSInfo[tag];
